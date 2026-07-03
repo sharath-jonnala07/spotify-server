@@ -4,18 +4,22 @@ from datetime import datetime
 
 def preload_database(db: Session) -> None:
     # 1. Preload Default User
-    default_user = db.query(User).filter(User.id == "default").first()
-    if not default_user:
-        new_user = User(
-            id="default",
-            name="Sharath",
-            email="sharath@spotify.local",
-            avatar=None,
-            created_at=datetime.utcnow()
-        )
-        db.add(new_user)
-        db.commit()
-        print("Default user preloaded.")
+    try:
+        default_user = db.query(User).filter(User.id == "default").first()
+        if not default_user:
+            new_user = User(
+                id="default",
+                name="Sharath",
+                email="sharath@spotify.local",
+                avatar=None,
+                created_at=datetime.utcnow()
+            )
+            db.add(new_user)
+            db.commit()
+            print("Default user preloaded.")
+    except Exception as e:
+        db.rollback()
+        print(f"Skipping user preload (likely already exists or handled by another worker): {e}")
 
     # 2. Preload Hybrid Baseline Tracks (English, Hindi, and Telugu hits)
     baseline_songs = [
@@ -160,28 +164,37 @@ def preload_database(db: Session) -> None:
     ]
     
     # Remove old baseline mock songs from DB
-    db.query(Song).filter(Song.id.like("song-%")).delete(synchronize_session=False)
-    db.commit()
+    try:
+        db.query(Song).filter(Song.id.like("song-%")).delete(synchronize_session=False)
+        db.commit()
+    except Exception as e:
+        db.rollback()
+        print(f"Skipping deletion of old baseline songs: {e}")
 
     for s_data in baseline_songs:
-        song = db.query(Song).filter(Song.id == s_data["id"]).first()
-        if not song:
-            new_song = Song(
-                id=s_data["id"],
-                spotify_id=s_data["spotify_id"],
-                title=s_data["title"],
-                artist=s_data["artist"],
-                album=s_data["album"],
-                duration=s_data["duration"],
-                image_url=s_data["image_url"]
-            )
-            db.add(new_song)
-        else:
-            # Update metadata to ensure correctness
-            song.title = s_data["title"]
-            song.artist = s_data["artist"]
-            song.album = s_data["album"]
-            song.duration = s_data["duration"]
-            song.image_url = s_data["image_url"]
-    db.commit()
+        try:
+            song = db.query(Song).filter(Song.id == s_data["id"]).first()
+            if not song:
+                new_song = Song(
+                    id=s_data["id"],
+                    spotify_id=s_data["spotify_id"],
+                    title=s_data["title"],
+                    artist=s_data["artist"],
+                    album=s_data["album"],
+                    duration=s_data["duration"],
+                    image_url=s_data["image_url"]
+                )
+                db.add(new_song)
+                db.commit()
+            else:
+                # Update metadata to ensure correctness
+                song.title = s_data["title"]
+                song.artist = s_data["artist"]
+                song.album = s_data["album"]
+                song.duration = s_data["duration"]
+                song.image_url = s_data["image_url"]
+                db.commit()
+        except Exception as e:
+            db.rollback()
+            print(f"Skipping preload for song {s_data['id']} (likely handled by another worker): {e}")
     print("Baseline popular songs preloaded.")
