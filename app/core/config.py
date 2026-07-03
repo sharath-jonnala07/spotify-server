@@ -4,6 +4,12 @@ from typing import List
 class Settings:
     PROJECT_NAME: str = "Spotify Clone API"
     
+    # CORS Configuration
+    ALLOWED_ORIGINS: List[str] = [
+        origin.strip() 
+        for origin in os.getenv("ALLOWED_ORIGINS", "http://localhost:3000,http://localhost:5173,http://localhost:5174").split(",")
+    ]
+    
     # SQLite Configuration
     DATABASE_URL: str = os.getenv("DATABASE_URL", "sqlite:///./spotify.db")
     
