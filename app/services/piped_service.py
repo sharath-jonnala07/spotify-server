@@ -15,6 +15,11 @@ class PipedService:
             'extract_flat': 'in_playlist',
             'quiet': True,
             'no_warnings': True,
+            'extractor_args': {
+                'youtube': {
+                    'player_client': ['android', 'web']
+                }
+            }
         }
         
         loop = asyncio.get_event_loop()
@@ -67,6 +72,11 @@ class PipedService:
             'youtube_include_dash_manifest': False,
             'youtube_include_hls_manifest': False,
             'check_formats': 'skip',
+            'extractor_args': {
+                'youtube': {
+                    'player_client': ['android', 'web']
+                }
+            }
         }
         
         loop = asyncio.get_event_loop()
