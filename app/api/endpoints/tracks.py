@@ -200,6 +200,11 @@ async def get_trending_tracks(db: Session = Depends(get_db)):
     cache.set(cache_key, responses, 3600)
     return responses
 
+@router.get("/podcasts", response_model=List[SongResponse])
+async def get_podcasts(db: Session = Depends(get_db)):
+    db_podcasts = db.query(Song).filter(Song.id.like("pod_%")).all()
+    return db_podcasts
+
 @router.get("/artists/{artist_name}", response_model=List[SongResponse])
 async def get_artist_tracks(artist_name: str):
     cache_key = f"artist_tracks_{artist_name.lower()}"
@@ -215,3 +220,37 @@ async def get_artist_tracks(artist_name: str):
     responses = [SongResponse(**t) for t in results]
     cache.set(cache_key, responses, 86400)
     return responses
+
+import json
+from app.schemas.schemas import UserPreferences
+
+@router.put("/preferences", response_model=Dict[str, Any])
+async def update_preferences(prefs: UserPreferences, db: Session = Depends(get_db)):
+    user = db.query(User).filter(User.id == DEFAULT_USER_ID).first()
+    if not user:
+        user = User(
+            id=DEFAULT_USER_ID,
+            name="Sharath",
+            email="sharath@spotify.local",
+            created_at=datetime.utcnow()
+        )
+        db.add(user)
+    
+    user.preferences = json.dumps(prefs.model_dump())
+    db.commit()
+    
+    # Invalidate recommendations cache so that they are re-calculated with new preferences
+    cache.delete(f"recommendations_{DEFAULT_USER_ID}")
+    return {"status": "success", "message": "Preferences updated successfully"}
+
+@router.get("/preferences", response_model=Dict[str, Any])
+async def get_preferences(db: Session = Depends(get_db)):
+    user = db.query(User).filter(User.id == DEFAULT_USER_ID).first()
+    if not user or not user.preferences:
+        return {"languages": [], "vibe": "", "artists": []}
+    
+    try:
+        return json.loads(user.preferences)
+    except Exception:
+        return {"languages": [], "vibe": "", "artists": []}
+

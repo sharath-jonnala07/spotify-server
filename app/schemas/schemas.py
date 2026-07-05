@@ -50,3 +50,17 @@ class ResolvedTrack(BaseModel):
 
 class SearchResponse(BaseModel):
     tracks: List[SongResponse]
+
+class UserPreferences(BaseModel):
+    languages: List[str]
+    vibe: str
+    artists: List[str]
+    custom_vibe: Optional[str] = None
+    audio_focus: str = "vibe"
+    custom_notes: Optional[str] = None
+
+class UserPreferencesResponse(BaseModel):
+    status: str
+    preferences: UserPreferences
+
+

@@ -28,5 +28,10 @@ class InMemoryCache:
         with self._lock:
             self._cache.clear()
 
+    def delete(self, key: str) -> None:
+        with self._lock:
+            if key in self._cache:
+                del self._cache[key]
+
 # Global cache instance
 cache = InMemoryCache()

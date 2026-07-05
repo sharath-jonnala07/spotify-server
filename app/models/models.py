@@ -9,6 +9,7 @@ class User(Base):
     name = Column(String, nullable=False)
     email = Column(String, unique=True, index=True)
     avatar = Column(String, nullable=True)
+    preferences = Column(String, nullable=True)  # JSON-serialized string of user preferences
     created_at = Column(DateTime, default=datetime.utcnow)
 
 class Song(Base):
