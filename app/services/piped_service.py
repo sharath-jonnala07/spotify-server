@@ -17,7 +17,7 @@ class PipedService:
             'no_warnings': True,
             'extractor_args': {
                 'youtube': {
-                    'player_client': ['android', 'web']
+                    'player_client': ['android_music']
                 }
             }
         }
@@ -74,7 +74,7 @@ class PipedService:
             'check_formats': 'skip',
             'extractor_args': {
                 'youtube': {
-                    'player_client': ['android', 'web']
+                    'player_client': ['android_music']
                 }
             }
         }
