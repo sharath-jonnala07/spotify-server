@@ -246,11 +246,24 @@ async def update_preferences(prefs: UserPreferences, db: Session = Depends(get_d
 @router.get("/preferences", response_model=Dict[str, Any])
 async def get_preferences(db: Session = Depends(get_db)):
     user = db.query(User).filter(User.id == DEFAULT_USER_ID).first()
+    default_prefs = {
+        "languages": [],
+        "vibe": "",
+        "artists": [],
+        "discovery_appetite": 50,
+        "exploration_depth_width": 50,
+        "stories": []
+    }
     if not user or not user.preferences:
-        return {"languages": [], "vibe": "", "artists": []}
+        return default_prefs
     
     try:
-        return json.loads(user.preferences)
+        data = json.loads(user.preferences)
+        # Ensure new fields are present if not previously saved
+        for k, v in default_prefs.items():
+            if k not in data:
+                data[k] = v
+        return data
     except Exception:
-        return {"languages": [], "vibe": "", "artists": []}
+        return default_prefs
 

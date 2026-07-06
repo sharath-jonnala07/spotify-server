@@ -15,6 +15,9 @@ class SongCreate(SongBase):
     pass
 
 class SongResponse(SongBase):
+    reason: Optional[str] = None
+    preview_offset: Optional[int] = None
+
     class Config:
         from_attributes = True
 
@@ -51,6 +54,19 @@ class ResolvedTrack(BaseModel):
 class SearchResponse(BaseModel):
     tracks: List[SongResponse]
 
+class RoutineTimePeriod(BaseModel):
+    id: str
+    startTime: str
+    endTime: str
+    days: List[str]
+
+class UserStory(BaseModel):
+    id: str
+    text: str
+    active: bool
+    routineActive: bool
+    routines: List[RoutineTimePeriod]
+
 class UserPreferences(BaseModel):
     languages: List[str]
     vibe: str
@@ -58,9 +74,16 @@ class UserPreferences(BaseModel):
     custom_vibe: Optional[str] = None
     audio_focus: str = "vibe"
     custom_notes: Optional[str] = None
+    discovery_appetite: int = 50  # 0 = Familiar, 100 = Curious
+    exploration_depth_width: int = 50  # 0 = Depth, 100 = Width
+    stories: List[UserStory] = []
 
 class UserPreferencesResponse(BaseModel):
     status: str
     preferences: UserPreferences
+
+class RecommendationFeedResponse(BaseModel):
+    tracks: List[SongResponse]
+    ai_commentary: Optional[str] = None
 
 
